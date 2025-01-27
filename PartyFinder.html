@@ -18,6 +18,9 @@
             </div>
             <button type="submit" class="btn btn-primary">Consultar</button>
         </form>
+        <div id="info" class="mt-4 text-center">
+
+        </div>
         <div id="resultados" class="row mt-4"></div>
     </div>
     <!-- Bootstrap JS and dependencies -->
@@ -33,18 +36,21 @@
             let lvmin = Math.floor(level / 1.5);
             let lvmax = Math.floor(level * 1.5);
 
-            consultaPlayers(world, lvmin, lvmax);
+            consultaPlayers(world, level, lvmin, lvmax);
         });
 
-        function consultaPlayers(world, lvmin, lvmax) {
+        function consultaPlayers(world, level, lvmin, lvmax) {
             let url = `https://api.tibiadata.com/v4/world/${world}`;
 
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
                     let players = data.world.online_players;
+                    let info = document.getElementById('info');
                     let resultados = document.getElementById('resultados');
                     resultados.innerHTML = "";
+
+                    info.innerHTML = `<p>No level <mark class="p-1 m-2">${level}</mark> você é capaz de sharear com players do level <mark class="p-1 m-2">${lvmin}</mark> a <mark class="p-1 m-2">${lvmax}</mark>.<br>Os seguintes players online estão nesse range:</p>`;
 
                     exibirJogadoresPorVocacao(players, "Elite Knight", lvmin, lvmax, resultados);
                     exibirJogadoresPorVocacao(players, "Elder Druid", lvmin, lvmax, resultados);
