@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tibia Player Datas</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.5.2/darkly/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1 class="text-center">Player Datas</h1>
+        
+        <div id="playerdatas" class="row mt-4">
+
+        </div>
+    </div>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        async function consultaPlayerData(player) {
+            let url = `https://api.tibiadata.com/v4/character/${player}`;
+            try {
+                let response = await fetch(url);
+                let data = await response.json();
+                let playerData = data.character.character;
+                return playerData.guild.name;
+            } catch (error) {
+                console.error('Erro:', error);
+                return null; // Retorna null em caso de erro
+            }
+        }
+        
+        consultaPlayerData('Paralecus Healer')
+            .then(guildName => console.log(guildName));
+    </script>
+</body>
+</html>

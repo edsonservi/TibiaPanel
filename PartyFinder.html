@@ -30,18 +30,18 @@
     <script>
         document.getElementById('consultaForm').addEventListener('submit', function(event) {
             event.preventDefault();
-
+    
             let world = "gladera";
             let level = parseInt(document.getElementById('lv').value);
             let lvmin = Math.floor(level / 1.5);
             let lvmax = Math.floor(level * 1.5);
-
+    
             consultaPlayers(world, level, lvmin, lvmax);
         });
-
-        function consultaPlayers(world, level, lvmin, lvmax) {
+    
+        async function consultaPlayers(world, level, lvmin, lvmax) {
             let url = `https://api.tibiadata.com/v4/world/${world}`;
-
+    
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
@@ -49,20 +49,20 @@
                     let info = document.getElementById('info');
                     let resultados = document.getElementById('resultados');
                     resultados.innerHTML = "";
-
+    
                     info.innerHTML = `<p>No level <mark class="p-1 m-2">${level}</mark> você é capaz de sharear com players do level <mark class="p-1 m-2">${lvmin}</mark> a <mark class="p-1 m-2">${lvmax}</mark>.<br>Os seguintes players online estão nesse range:</p>`;
-
+    
                     exibirJogadoresPorVocacao(players, "Elite Knight", lvmin, lvmax, resultados);
                     exibirJogadoresPorVocacao(players, "Elder Druid", lvmin, lvmax, resultados);
                     exibirJogadoresPorVocacao(players, "Master Sorcerer", lvmin, lvmax, resultados);
                     exibirJogadoresPorVocacao(players, "Royal Paladin", lvmin, lvmax, resultados);
                 });
         }
-
-        function exibirJogadoresPorVocacao(jogadores, vocacao, lvmin, lvmax, resultados) {
+    
+        async function exibirJogadoresPorVocacao(jogadores, vocacao, lvmin, lvmax, resultados) {
             let jogadoresFiltrados = jogadores.filter(player => vocacao === player.vocation && lvmin <= player.level && player.level <= lvmax);
             let jogadoresOrdenados = jogadoresFiltrados.sort((a, b) => b.level - a.level);
-
+    
             if (jogadoresOrdenados.length > 0) {
                 let card = document.createElement('div');
                 card.className = 'col-md-3 mb-4';
@@ -72,15 +72,16 @@
                             <h5 class="card-title">${vocacao} (${jogadoresOrdenados.length})</h5>
                             <ul class="list-group list-group-flush">
                 `;
-                jogadoresOrdenados.forEach(player => {
+                for (const player of jogadoresOrdenados) {
+                    let guildName = await consultaPlayerData(player.name);
                     cardContent += `
                         <li class="list-group-item">
                             <a href="https://www.tibia.com/community/?subtopic=characters&name=${encodeURIComponent(player.name)}" target="_blank">
                                 (${player.level}) -> ${player.name}
-                            </a>
+                            </a> ${guildName ? `(${guildName})` : ''}
                         </li>
                     `;
-                });
+                }
                 cardContent += `
                             </ul>
                         </div>
@@ -90,6 +91,21 @@
                 resultados.appendChild(card);
             }
         }
+    
+        async function consultaPlayerData(player) {
+            let url = `https://api.tibiadata.com/v4/character/${player}`;
+            try {
+                let response = await fetch(url);
+                let data = await response.json();
+                let playerData = data.character.character;
+
+                return playerData.guild.name;
+            } catch (error) {
+                console.error('Erro:', error);
+                return null; // Retorna null em caso de erro
+            }
+        }
     </script>
+    
 </body>
 </html>
