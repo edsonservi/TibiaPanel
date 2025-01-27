@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tibia Party Finder</title>
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/4.5.2/darkly/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Consultar Party</h1>
+        <form id="consultaForm">
+            <div class="form-group">
+                <label for="lv">Nível: </label>
+                <input type="number" class="form-control" id="lv" name="lv" placeholder="Insira seu nível" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Consultar</button>
+        </form>
+        <div id="resultados" class="row mt-4"></div>
+    </div>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        document.getElementById('consultaForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            let world = "gladera";
+            let level = parseInt(document.getElementById('lv').value);
+            let lvmin = Math.floor(level / 1.5);
+            let lvmax = Math.floor(level * 1.5);
+
+            consultaPlayers(world, lvmin, lvmax);
+        });
+
+        function consultaPlayers(world, lvmin, lvmax) {
+            let url = `https://api.tibiadata.com/v4/world/${world}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    let players = data.world.online_players;
+                    let resultados = document.getElementById('resultados');
+                    resultados.innerHTML = "";
+
+                    exibirJogadoresPorVocacao(players, "Elite Knight", lvmin, lvmax, resultados);
+                    exibirJogadoresPorVocacao(players, "Elder Druid", lvmin, lvmax, resultados);
+                    exibirJogadoresPorVocacao(players, "Master Sorcerer", lvmin, lvmax, resultados);
+                    exibirJogadoresPorVocacao(players, "Royal Paladin", lvmin, lvmax, resultados);
+                });
+        }
+
+        function exibirJogadoresPorVocacao(jogadores, vocacao, lvmin, lvmax, resultados) {
+            let jogadoresFiltrados = jogadores.filter(player => vocacao === player.vocation && lvmin <= player.level && player.level <= lvmax);
+            let jogadoresOrdenados = jogadoresFiltrados.sort((a, b) => b.level - a.level);
+
+            if (jogadoresOrdenados.length > 0) {
+                let card = document.createElement('div');
+                card.className = 'col-md-3 mb-4';
+                let cardContent = `
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">${vocacao} (${jogadoresOrdenados.length})</h5>
+                            <ul class="list-group list-group-flush">
+                `;
+                jogadoresOrdenados.forEach(player => {
+                    cardContent += `
+                        <li class="list-group-item">
+                            <a href="https://www.tibia.com/community/?subtopic=characters&name=${encodeURIComponent(player.name)}" target="_blank">
+                                (${player.level}) -> ${player.name}
+                            </a>
+                        </li>
+                    `;
+                });
+                cardContent += `
+                            </ul>
+                        </div>
+                    </div>
+                `;
+                card.innerHTML = cardContent;
+                resultados.appendChild(card);
+            }
+        }
+    </script>
+</body>
+</html>
